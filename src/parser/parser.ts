@@ -3,22 +3,21 @@ import { Property, Struct } from '../types';
 
 export class Parser {
     private lines: string[];
+    private sytaxTree: Struct[] = [];
 
     constructor(file: string) {
        this.lines = file.split("\n");
     }
 
     public parseFile(): Struct[] {
-        let rootStructs: Struct[] = [];
         while (this.lines.length > 0) {
             let line = this.lines.shift() ?? "";
             const structMatch = line.match(lexemes.struct);
             if (structMatch) { 
-                rootStructs.push(this.parseStruct(structMatch[1]));
+                this.sytaxTree.push(this.parseStruct(structMatch[1]));
             } 
         }
-        this.debug(rootStructs);
-        return rootStructs;       
+        return this.sytaxTree;       
     }
 
     private parseStruct(fatherName: string): Struct {
@@ -56,6 +55,19 @@ export class Parser {
             });
         }
         return properties;
+    }
+
+    get structList(): Struct[] {
+        return this.getStructList(this.sytaxTree);
+    }
+
+    private getStructList(structs: Struct[]) {
+        let structsList: Struct[] = [];
+        for (const struct of structs) {
+            structsList.push(struct);
+            structsList = structsList.concat(this.getStructList(struct.subStructs));
+        }
+        return structsList;
     }
 
     private debug(rootStructs: Struct[]) {

@@ -1,14 +1,15 @@
 
 import * as fs from 'fs';
 import { Parser } from './parser/parser';
-import { swiftModel2Equatable } from './swiftModel2equatable';
+import { swift2equatableConverter }  from './swift2equatable';
 
-const inputFile = 'samples/person.swift';
-const file = fs.readFileSync(inputFile, 'utf8');
+export function swift2equatable(file: string): string {
+    const parser = new Parser(file);
+    parser.parseFile();
+    return swift2equatableConverter.convert(parser.structList);
+}
 
-const parser = new Parser(file);
-let structs =  parser.parseFile();
+// const inputFile = 'samples/person.swift';
+// const file = fs.readFileSync(inputFile, 'utf8');
 
-console.log(swiftModel2Equatable.convert(structs));
-
-
+// console.log(swift2equatable(file));
