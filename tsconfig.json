@@ -1,0 +1,12 @@
+{   
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "preserveConstEnums": true,
+        "strict": true,
+        "target": "ESNext",
+        "sourceMap": true,
+        "outDir": "dist",
+    }
+}
+ /* Visit https://aka.ms/tsconfig to read more about this file */
