@@ -1,8 +1,8 @@
-struct Person {
+struct Person: String {
     let firstName, lastName: String
     var age: Int
 
-    struct Cats {
+    struct Cats: String {
         let cat: String
         var surname: String
         var age: Int
