@@ -1,21 +1,37 @@
 import { lexemes } from './lexemes';
-import { Property, Struct } from '../types';
+import { SyntaxTree, Enum, EnumCase, EnumCaseParameter, Property, Struct } from '../types';
 
 export class Parser {
     private lines: string[];
-    private sytaxTree: Struct[] = [];
+    private sytaxTree: SyntaxTree;
 
     constructor(file: string) {
-       this.lines = file.split("\n");
+        file = this.cleanUnnecessaryStructures(file)
+        this.lines = file.split("\n");
+        this.sytaxTree = { 
+            structs: [],
+            enums: []
+        };
     }
 
-    public parseFile(): Struct[] {
+    private cleanUnnecessaryStructures(file: string): string {
+        file = file.replaceAll(lexemes.init, "");
+        file = file.replaceAll(lexemes.function, "");
+        file = file.replaceAll(lexemes.switch, "");
+        return file;
+    }
+
+    public parseFile(): SyntaxTree {
         while (this.lines.length > 0) {
             let line = this.lines.shift() ?? "";
             const structMatch = line.match(lexemes.struct);
             if (structMatch) { 
-                this.sytaxTree.push(this.parseStruct(structMatch[1]));
+                this.sytaxTree.structs.push(this.parseStruct(structMatch[2]));
             } 
+            const enumMatch = line.match(lexemes.enum);
+            if (enumMatch) {
+                this.sytaxTree.enums.push(this.parseEnum(enumMatch[1]));
+            }
         }
         return this.sytaxTree;       
     }
@@ -25,15 +41,20 @@ export class Parser {
             fullName: fatherName,
             property: [],
             subStructs: [],
+            enums: []
         };
         while (this.lines.length > 0) {
             let line = this.lines.shift() ?? "";
             const structMatch = line.match(lexemes.struct);
+            const enumMatch = line.match(lexemes.enum);
             if (structMatch) { 
-                struct.subStructs.push(this.parseStruct(fatherName + "." + structMatch[1]));
+                struct.subStructs.push(this.parseStruct(fatherName + "." + structMatch[2]));
             } 
             else if (line.match(lexemes.variable)) {
                 struct.property = struct.property.concat(this.parseProperty(line));
+            }
+            else if (enumMatch) {
+                struct.enums.push(this.parseEnum(fatherName + "." + enumMatch[1]));
             }
             else if (line.match(lexemes.endBracket)) {
                 return struct;
@@ -57,11 +78,70 @@ export class Parser {
         return properties;
     }
 
-    get structList(): Struct[] {
-        return this.getStructList(this.sytaxTree);
+    private parseEnum(fatherName: string): Enum {
+        let enumStruct: Enum = {
+            name: fatherName,
+            cases: []
+        };
+        while (this.lines.length > 0) {
+            let line = this.lines.shift() ?? "";
+            const enumCaseMatch = line.match(lexemes.enumCase);
+            if (enumCaseMatch) {
+                enumStruct.cases.push(this.parseEnumCase(line));
+            }
+            else if (line.match(lexemes.endBracket)) {
+                return enumStruct;
+            }
+        }
+        return enumStruct;
     }
 
-    private getStructList(structs: Struct[]) {
+    private parseEnumCase(line: string): EnumCase {
+        let enumCase: EnumCase = {
+            name: "",
+            parameters: []
+        };
+        const match = line.match(lexemes.enumCase);
+        if (match === null) return enumCase;
+        enumCase.name = match[1];
+        if (match[3]) {
+            enumCase.parameters = this.parseEnumCaseParameters(match[3]);
+        }
+        return enumCase;
+    }
+
+    private parseEnumCaseParameters(parametersDeclaration: string): EnumCaseParameter[] {
+        let enumCaseParameters: EnumCaseParameter[] = [];
+        let parameters = parametersDeclaration.split(",");
+        for (const i in parameters) {
+            parameters[i] = parameters[i].replaceAll(" ", "");
+            const parameterSplit = parameters[i].split(":");
+            if (parameterSplit.length === 1) {
+                enumCaseParameters.push({
+                    name: undefined,
+                    type: parameterSplit[0] + i
+                });
+            }
+            else {
+                enumCaseParameters.push({
+                    name: parameterSplit[0],
+                    type: parameterSplit[1]
+                });
+            }
+        }
+        return enumCaseParameters;
+    }
+
+    get structList(): Struct[] {
+        return this.getStructList(this.sytaxTree.structs);
+    }
+
+    get enumList(): Enum[] {
+        let enums = this.sytaxTree.enums.concat(this.getEnumInsideStructs(this.sytaxTree.structs))
+        return enums;
+    }
+
+    private getStructList(structs: Struct[]): Struct[] {
         let structsList: Struct[] = [];
         for (const struct of structs) {
             structsList.push(struct);
@@ -70,10 +150,12 @@ export class Parser {
         return structsList;
     }
 
-    private debug(rootStructs: Struct[]) {
-        for (const struct of rootStructs) {
-            console.log(struct);
-            this.debug(struct.subStructs);
+    private getEnumInsideStructs(structs: Struct[]): Enum[] {
+        let enums: Enum[] = [];
+        for (const struct of structs) {
+            enums = enums.concat(struct.enums);
+            enums = enums.concat(this.getEnumInsideStructs(struct.subStructs));
         }
+        return enums;
     }
 }
