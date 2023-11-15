@@ -1,2 +1,2 @@
-# swift2equatable
- A tool that helps generate struct and enum models to equatable protocol
+# swift2fixture
+ A tool that helps generate fixtures from swift struct models

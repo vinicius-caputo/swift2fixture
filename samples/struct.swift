@@ -3,7 +3,7 @@ struct Person: String {
     var age: Int
 
     struct Cats: String {
-        let cat: String
+        let cat: CustomType
         var surname: String
         var age: Int
    

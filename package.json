@@ -1,5 +1,5 @@
 {
-  "name": "swift2equatable",
+  "name": "swift2fixture",
   "devDependencies": {
     "@types/node": "^18.11.9",
     "pkg": "^5.8.0",
@@ -10,7 +10,7 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {},
-  "bin": "dist/src/index.js",
+  "bin": "dist/src/bin.js",
   "pkg": {
     "scripts": [
       "dist/src/**/*.js"

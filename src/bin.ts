@@ -1,10 +1,10 @@
-import { swift2equatable } from './index';
+import { swift2fixture } from './index';
 import { argv } from 'process';
 
 function resolveArgs() {
     if (argv.length < 3) {
-        console.log('Basic usage: swift2equatable <path-to-xib-file>');
-        console.log('Help: swift2equatable -h');
+        console.log('Basic usage: swift2fixture <path-to-swift-file>');
+        console.log('Help: swift2fixture -h');
         process.exit(1);
     }
     let path = argv[2];
@@ -12,11 +12,11 @@ function resolveArgs() {
     let outputPath = '';
     argv.forEach((val, index) => {
         if (val == '-h' || val == '--help') {
-            console.log('Basic usage: swift2equatable <path-to-xib-file>');
+            console.log('Basic usage: swift2fixture <path-to-swift-file>');
             console.log('Options:');
-            console.log(' -p, --path <path-to-xib-file>  Path to xib file');
+            console.log(' -p, --path <path-to-file>  Path to swift file');
             console.log(' -o, --outputPath <path-to-output-file>  Path to output file');
-            console.log(' -s, --string <xib-string>  xib string');
+            console.log(' -s, --string <swift-string>  swift string');
             console.log(' -h, --help  Display this help message');
             process.exit(0);
         }
@@ -33,12 +33,12 @@ function resolveArgs() {
 
     let convertedCode = '';
     if (string != '') {
-        convertedCode = swift2equatable(string);
+        convertedCode = swift2fixture(string);
     }
     else if (path != '') {
         const fs = require('fs');
         let swiftFile = fs.readFileSync(path, 'utf8')
-        convertedCode = swift2equatable(swiftFile);
+        convertedCode = swift2fixture(swiftFile);
     }
     
     if (outputPath != '') {
